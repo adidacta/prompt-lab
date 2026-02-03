@@ -252,22 +252,97 @@ textarea::placeholder {
   background: #4f4f6a;
 }
 
+/* ============================================
+   MOBILE DRAWER STYLES
+   ============================================ */
+
+/* Drawer overlay */
+.drawer-overlay {
+  display: none;
+}
+
+/* Drawer handle - hidden on desktop */
+.drawer-handle {
+  display: none;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .flex.h-screen {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
-  .w-96 {
-    width: 100%;
-    height: 40vh;
+  /* Chat takes full height on mobile */
+  .flex-1.flex.flex-col {
+    height: 100vh;
+    border-left: none;
+    padding-bottom: 70px; /* Space for drawer peek */
+  }
+
+  /* Drawer overlay */
+  .drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 39;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .drawer-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Prompt drawer */
+  .prompt-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: 85vh;
     border-right: none;
     border-top: 1px solid #2f2f4a;
+    border-radius: 1.5rem 1.5rem 0 0;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 0.3s ease;
+    z-index: 40;
   }
 
-  .flex-1.flex.flex-col {
-    height: 60vh;
-    border-left: none;
+  .prompt-drawer.open {
+    transform: translateY(0);
+  }
+
+  /* Drawer handle */
+  .drawer-handle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .handle-bar {
+    width: 40px;
+    height: 4px;
+    background: #4f4f6a;
+    border-radius: 2px;
+    margin-bottom: 0.5rem;
+  }
+
+  .handle-text {
+    font-size: 0.875rem;
+    color: #a5b4fc;
+    font-weight: 500;
+  }
+
+  /* Hide canvas header on mobile (handle replaces it) */
+  .prompt-drawer > .p-4.border-b {
+    display: none;
   }
 
   .message-content {

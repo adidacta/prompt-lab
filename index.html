@@ -77,8 +77,17 @@
       </div>
     </div>
 
-    <!-- Prompt Canvas (Right) -->
-    <div class="w-96 bg-dark-800 flex flex-col border-r border-dark-600">
+    <!-- Drawer Overlay (Mobile) -->
+    <div id="drawer-overlay" class="drawer-overlay hidden"></div>
+
+    <!-- Prompt Canvas (Right on Desktop, Bottom Drawer on Mobile) -->
+    <div id="prompt-drawer" class="prompt-drawer w-96 bg-dark-800 flex flex-col border-r border-dark-600">
+
+      <!-- Drawer Handle (Mobile only) -->
+      <div id="drawer-handle" class="drawer-handle">
+        <div class="handle-bar"></div>
+        <span class="handle-text">📋 הפרומפט שלך</span>
+      </div>
 
       <!-- Canvas Header -->
       <div class="p-4 border-b border-dark-600">
@@ -178,7 +187,7 @@
           🔄 התחל מחדש
         </button>
       </div>
-    </div>
+    </div><!-- End prompt-drawer -->
 
   </div>
 

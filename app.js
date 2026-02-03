@@ -71,7 +71,9 @@ const state = {
   gallerySearchQuery: '',
   // Conversation mode (after running prompt)
   inConversationMode: false,
-  promptConversation: []
+  promptConversation: [],
+  // Mobile drawer state
+  drawerOpen: false
 };
 
 // ============================================
@@ -310,7 +312,11 @@ const elements = {
   gallerySearch: document.getElementById('gallery-search'),
   galleryFilters: document.getElementById('gallery-filters'),
   galleryGrid: document.getElementById('gallery-grid'),
-  galleryEmpty: document.getElementById('gallery-empty')
+  galleryEmpty: document.getElementById('gallery-empty'),
+  // Mobile drawer elements
+  promptDrawer: document.getElementById('prompt-drawer'),
+  drawerOverlay: document.getElementById('drawer-overlay'),
+  drawerHandle: document.getElementById('drawer-handle')
 };
 
 // ============================================
@@ -350,6 +356,48 @@ const SUGGESTION_PROMPT = `אתה עוזר לבנות פרומפטים. המשת
 - הצעות קצרות וברורות (2-4 מילים)
 - בעברית בלבד
 - אל תציע דברים גנריים - התאם למשימה הספציפית`;
+
+// ============================================
+// MOBILE DRAWER CONTROLS
+// ============================================
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+function openDrawer() {
+  if (!elements.promptDrawer || !elements.drawerOverlay) return;
+  state.drawerOpen = true;
+  elements.promptDrawer.classList.add('open');
+  elements.drawerOverlay.classList.remove('hidden');
+  elements.drawerOverlay.classList.add('show');
+}
+
+function closeDrawer() {
+  if (!elements.promptDrawer || !elements.drawerOverlay) return;
+  state.drawerOpen = false;
+  elements.promptDrawer.classList.remove('open');
+  elements.drawerOverlay.classList.remove('show');
+  setTimeout(() => {
+    if (!state.drawerOpen) {
+      elements.drawerOverlay.classList.add('hidden');
+    }
+  }, 300);
+}
+
+function toggleDrawer() {
+  if (state.drawerOpen) {
+    closeDrawer();
+  } else {
+    openDrawer();
+  }
+}
+
+// Auto-open drawer when prompt is complete (mobile only)
+function autoOpenDrawerOnComplete() {
+  if (isMobile() && state.isComplete) {
+    openDrawer();
+  }
+}
 
 // ============================================
 // GALLERY MODAL UI
@@ -552,6 +600,15 @@ async function init() {
       state.gallerySearchQuery = e.target.value;
       renderGalleryContent();
     });
+  }
+
+  // Mobile drawer event listeners
+  if (elements.drawerHandle) {
+    elements.drawerHandle.addEventListener('click', toggleDrawer);
+  }
+
+  if (elements.drawerOverlay) {
+    elements.drawerOverlay.addEventListener('click', closeDrawer);
   }
 
   updateActionButtons();
@@ -802,6 +859,9 @@ async function completeInterview() {
       false
     );
 
+    // Auto-open drawer on mobile
+    autoOpenDrawerOnComplete();
+
   } catch (error) {
     console.error('Error generating prompt:', error);
     removeTypingIndicator();
@@ -819,6 +879,9 @@ async function completeInterview() {
       ['הרץ פרומפט', 'העתק לקליפבורד', 'התחל מחדש'],
       false
     );
+
+    // Auto-open drawer on mobile
+    autoOpenDrawerOnComplete();
   }
 
   state.isLoading = false;
