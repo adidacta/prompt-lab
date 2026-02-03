@@ -68,7 +68,10 @@ const state = {
   // Gallery state
   gallery: [],
   galleryFilters: {}, // { task: 'מצגת', tone: 'רשמי' }
-  gallerySearchQuery: ''
+  gallerySearchQuery: '',
+  // Conversation mode (after running prompt)
+  inConversationMode: false,
+  promptConversation: []
 };
 
 // ============================================
@@ -77,7 +80,14 @@ const state = {
 const SUPABASE_URL = 'https://smirvaqigakngzlvyctq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtaXJ2YXFpZ2Frbmd6bHZ5Y3RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDI5NzEsImV4cCI6MjA4NTY3ODk3MX0.uX83Jqlt9X0IQD9I6lQmNZO7bbwbFnuu2a_LmSHgYyk';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+
+function initSupabase() {
+  if (!supabaseClient && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return supabaseClient;
+}
 
 // ============================================
 // GALLERY DATA LAYER (Supabase)
@@ -85,7 +95,14 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function loadGallery() {
   try {
-    const { data, error } = await supabase
+    const client = initSupabase();
+    if (!client) {
+      console.warn('Supabase not available, using empty gallery');
+      state.gallery = [];
+      return;
+    }
+
+    const { data, error } = await client
       .from('prompts')
       .select('*')
       .order('created_at', { ascending: false });
@@ -121,6 +138,12 @@ async function publishPrompt() {
     return;
   }
 
+  const client = initSupabase();
+  if (!client) {
+    showToast('שגיאה בחיבור לשרת');
+    return;
+  }
+
   const promptData = {
     title: generateTitle(state.answers),
     prompt_text: state.currentPrompt,
@@ -135,7 +158,7 @@ async function publishPrompt() {
   };
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('prompts')
       .insert([promptData])
       .select()
@@ -161,8 +184,14 @@ async function publishPrompt() {
 }
 
 async function deletePromptFromGallery(id) {
+  const client = initSupabase();
+  if (!client) {
+    showToast('שגיאה בחיבור לשרת');
+    return;
+  }
+
   try {
-    const { error } = await supabase
+    const { error } = await client
       .from('prompts')
       .delete()
       .eq('id', id);
@@ -468,9 +497,17 @@ function updatePublishButton() {
 // INITIALIZATION
 // ============================================
 async function init() {
-  await loadGallery();
+  try {
+    console.log('Initializing app...');
+    await loadGallery();
+    console.log('Gallery loaded');
+  } catch (e) {
+    console.error('Error loading gallery:', e);
+  }
+
   renderProgressIndicator();
   sendGreetingAndFirstQuestion();
+  console.log('Init complete');
 
   // Event listeners
   elements.sendBtn.addEventListener('click', handleSend);
@@ -582,6 +619,13 @@ async function handleSend() {
   if (!text || state.isLoading) return;
 
   elements.userInput.value = '';
+
+  // If in conversation mode (after running prompt), continue that conversation
+  if (state.inConversationMode) {
+    await continueConversation(text);
+    return;
+  }
+
   addUserMessage(text);
 
   // Store answer for current step
@@ -1017,10 +1061,22 @@ async function copyPromptToClipboard() {
 }
 
 async function runPrompt() {
+  // Switch to conversation mode
+  state.inConversationMode = true;
+  state.promptConversation = []; // Track conversation for this prompt
+
+  // Clear chat and show the prompt as a user message
+  elements.chatContainer.innerHTML = '';
+  addUserMessage(state.currentPrompt);
+
+  // Add to conversation history
+  state.promptConversation.push({
+    role: 'user',
+    content: state.currentPrompt
+  });
+
   state.isLoading = true;
   updateActionButtons();
-
-  addAssistantMessage('מריץ את הפרומפט... ⏳');
   addTypingIndicator();
 
   try {
@@ -1028,41 +1084,71 @@ async function runPrompt() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [{
-          role: 'user',
-          content: state.currentPrompt
-        }]
+        messages: state.promptConversation
       })
     });
 
     const data = await response.json();
     removeTypingIndicator();
 
-    // Show result in chat
-    const resultDiv = document.createElement('div');
-    resultDiv.className = 'message assistant';
-    resultDiv.innerHTML = `
-      <div class="message-avatar">🤖</div>
-      <div class="message-content">
-        <div>הנה התוצאה:</div>
-        <div class="result-content">${escapeHtml(data.content)}</div>
-        <div class="result-actions">
-          <button class="result-action-btn" onclick="copyResult(this)">📋 העתק תוצאה</button>
-          <button class="result-action-btn" onclick="regenerate()">🔄 נסה שוב</button>
-        </div>
-      </div>
-    `;
-    elements.chatContainer.appendChild(resultDiv);
-    scrollToBottom();
+    // Add AI response to conversation history
+    state.promptConversation.push({
+      role: 'assistant',
+      content: data.content
+    });
+
+    // Show as regular assistant message (conversation style)
+    addAssistantMessage(data.content.replace(/\n/g, '\n'), null, false);
 
   } catch (error) {
     console.error('Error:', error);
     removeTypingIndicator();
-    addAssistantMessage('שגיאה בהרצת הפרומפט. נסה שוב?');
+    addAssistantMessage('שגיאה בהרצת הפרומפט. נסה שוב?', null, false);
   }
 
   state.isLoading = false;
   updateActionButtons();
+}
+
+// Continue conversation after running prompt
+async function continueConversation(userMessage) {
+  if (!state.inConversationMode) return;
+
+  addUserMessage(userMessage);
+  state.promptConversation.push({
+    role: 'user',
+    content: userMessage
+  });
+
+  state.isLoading = true;
+  addTypingIndicator();
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: state.promptConversation
+      })
+    });
+
+    const data = await response.json();
+    removeTypingIndicator();
+
+    state.promptConversation.push({
+      role: 'assistant',
+      content: data.content
+    });
+
+    addAssistantMessage(data.content, null, false);
+
+  } catch (error) {
+    console.error('Error:', error);
+    removeTypingIndicator();
+    addAssistantMessage('שגיאה. נסה שוב?', null, false);
+  }
+
+  state.isLoading = false;
 }
 
 window.copyResult = async function(btn) {
@@ -1089,6 +1175,8 @@ function resetConversation() {
   state.conversationHistory = [];
   state.currentPrompt = '';
   state.isComplete = false;
+  state.inConversationMode = false;
+  state.promptConversation = [];
 
   // Clear chat
   elements.chatContainer.innerHTML = '';
