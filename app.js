@@ -72,34 +72,38 @@ const state = {
 };
 
 // ============================================
-// GALLERY DATA LAYER
+// SUPABASE CLIENT
 // ============================================
-const GALLERY_STORAGE_KEY = 'promptGallery';
+const SUPABASE_URL = 'https://smirvaqigakngzlvyctq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtaXJ2YXFpZ2Frbmd6bHZ5Y3RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDI5NzEsImV4cCI6MjA4NTY3ODk3MX0.uX83Jqlt9X0IQD9I6lQmNZO7bbwbFnuu2a_LmSHgYyk';
 
-function loadGallery() {
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================
+// GALLERY DATA LAYER (Supabase)
+// ============================================
+
+async function loadGallery() {
   try {
-    const stored = localStorage.getItem(GALLERY_STORAGE_KEY);
-    if (stored) {
-      const data = JSON.parse(stored);
-      state.gallery = data.prompts || [];
-    }
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Transform Supabase data to app format
+    state.gallery = (data || []).map(row => ({
+      id: row.id,
+      createdAt: new Date(row.created_at).getTime(),
+      title: row.title,
+      promptText: row.prompt_text,
+      labels: row.labels || {}
+    }));
   } catch (e) {
-    console.error('Error loading gallery:', e);
+    console.error('Error loading gallery from Supabase:', e);
     state.gallery = [];
   }
-}
-
-function saveGallery() {
-  try {
-    const data = { prompts: state.gallery };
-    localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.error('Error saving gallery:', e);
-  }
-}
-
-function generateId() {
-  return 'prompt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 function generateTitle(answers) {
@@ -111,17 +115,15 @@ function generateTitle(answers) {
   return task || 'פרומפט ללא כותרת';
 }
 
-function publishPrompt() {
+async function publishPrompt() {
   if (!state.currentPrompt || !state.isComplete) {
     showToast('יש להשלים את הפרומפט לפני פרסום');
     return;
   }
 
-  const prompt = {
-    id: generateId(),
-    createdAt: Date.now(),
+  const promptData = {
     title: generateTitle(state.answers),
-    promptText: state.currentPrompt,
+    prompt_text: state.currentPrompt,
     labels: {
       task: state.answers.task || '',
       audience: state.answers.audience || '',
@@ -132,17 +134,48 @@ function publishPrompt() {
     }
   };
 
-  state.gallery.unshift(prompt);
-  saveGallery();
-  showToast('הפרומפט נוסף לגלריה! 🎉');
-  updatePublishButton();
+  try {
+    const { data, error } = await supabase
+      .from('prompts')
+      .insert([promptData])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Add to local state
+    state.gallery.unshift({
+      id: data.id,
+      createdAt: new Date(data.created_at).getTime(),
+      title: data.title,
+      promptText: data.prompt_text,
+      labels: data.labels
+    });
+
+    showToast('הפרומפט נוסף לגלריה! 🎉');
+    updatePublishButton();
+  } catch (e) {
+    console.error('Error publishing prompt:', e);
+    showToast('שגיאה בשמירת הפרומפט');
+  }
 }
 
-function deletePromptFromGallery(id) {
-  state.gallery = state.gallery.filter(p => p.id !== id);
-  saveGallery();
-  renderGalleryContent();
-  showToast('הפרומפט נמחק מהגלריה');
+async function deletePromptFromGallery(id) {
+  try {
+    const { error } = await supabase
+      .from('prompts')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    state.gallery = state.gallery.filter(p => p.id !== id);
+    renderGalleryContent();
+    showToast('הפרומפט נמחק מהגלריה');
+  } catch (e) {
+    console.error('Error deleting prompt:', e);
+    showToast('שגיאה במחיקת הפרומפט');
+  }
 }
 
 function usePromptFromGallery(id) {
@@ -434,8 +467,8 @@ function updatePublishButton() {
 // ============================================
 // INITIALIZATION
 // ============================================
-function init() {
-  loadGallery();
+async function init() {
+  await loadGallery();
   renderProgressIndicator();
   sendGreetingAndFirstQuestion();
 
