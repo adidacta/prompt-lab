@@ -67,7 +67,7 @@ const state = {
   isComplete: false,
   // Gallery state
   gallery: [],
-  galleryFilters: {}, // { task: 'מצגת', tone: 'רשמי' }
+  galleryActiveTab: 'all', // 'all' or a task category
   gallerySearchQuery: '',
   // Conversation mode (after running prompt)
   inConversationMode: false,
@@ -265,12 +265,10 @@ function getFilteredGalleryPrompts() {
     });
   }
 
-  // Apply label filters
-  Object.entries(state.galleryFilters).forEach(([key, value]) => {
-    if (value) {
-      prompts = prompts.filter(p => p.labels[key] === value);
-    }
-  });
+  // Apply tab filter (by task category)
+  if (state.galleryActiveTab !== 'all') {
+    prompts = prompts.filter(p => p.labels.task === state.galleryActiveTab);
+  }
 
   return prompts;
 }
@@ -310,7 +308,7 @@ const elements = {
   galleryModal: document.getElementById('gallery-modal'),
   galleryClose: document.getElementById('gallery-close'),
   gallerySearch: document.getElementById('gallery-search'),
-  galleryFilters: document.getElementById('gallery-filters'),
+  galleryTabs: document.getElementById('gallery-tabs'),
   galleryGrid: document.getElementById('gallery-grid'),
   galleryEmpty: document.getElementById('gallery-empty'),
   // Mobile drawer elements
@@ -405,10 +403,10 @@ function autoOpenDrawerOnComplete() {
 function openGalleryModal() {
   if (!elements.galleryModal) return;
   elements.galleryModal.classList.remove('hidden');
-  state.galleryFilters = {};
+  state.galleryActiveTab = 'all';
   state.gallerySearchQuery = '';
   if (elements.gallerySearch) elements.gallerySearch.value = '';
-  renderGalleryFilters();
+  renderGalleryTabs();
   renderGalleryContent();
 }
 
@@ -417,49 +415,27 @@ function closeGalleryModal() {
   elements.galleryModal.classList.add('hidden');
 }
 
-function renderGalleryFilters() {
-  if (!elements.galleryFilters) return;
+function renderGalleryTabs() {
+  if (!elements.galleryTabs) return;
 
-  const labelTypes = [
-    { key: 'task', label: 'משימה', icon: '🎯' },
-    { key: 'audience', label: 'קהל יעד', icon: '👥' },
-    { key: 'format', label: 'פורמט', icon: '📄' },
-    { key: 'tone', label: 'טון', icon: '🎨' }
-  ];
+  // Get unique task categories from gallery
+  const categories = getAllLabelsOfType('task');
 
-  let html = '';
-  labelTypes.forEach(({ key, label, icon }) => {
-    const options = getAllLabelsOfType(key);
-    if (options.length === 0) return;
+  // Build tabs: "הכל" + unique categories
+  let html = `<button class="gallery-tab ${state.galleryActiveTab === 'all' ? 'active' : ''}" data-tab="all">הכל</button>`;
 
-    html += `<div class="filter-group">
-      <span class="filter-label">${icon} ${label}:</span>
-      <div class="filter-chips">
-        ${options.map(opt => `
-          <button class="filter-chip ${state.galleryFilters[key] === opt ? 'active' : ''}"
-                  data-filter-type="${key}" data-filter-value="${escapeHtml(opt)}">
-            ${escapeHtml(opt)}
-          </button>
-        `).join('')}
-      </div>
-    </div>`;
+  categories.forEach(category => {
+    const isActive = state.galleryActiveTab === category;
+    html += `<button class="gallery-tab ${isActive ? 'active' : ''}" data-tab="${escapeHtml(category)}">${escapeHtml(category)}</button>`;
   });
 
-  elements.galleryFilters.innerHTML = html;
+  elements.galleryTabs.innerHTML = html;
 
   // Add click handlers
-  elements.galleryFilters.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const type = chip.dataset.filterType;
-      const value = chip.dataset.filterValue;
-
-      if (state.galleryFilters[type] === value) {
-        delete state.galleryFilters[type];
-      } else {
-        state.galleryFilters[type] = value;
-      }
-
-      renderGalleryFilters();
+  elements.galleryTabs.querySelectorAll('.gallery-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      state.galleryActiveTab = tab.dataset.tab;
+      renderGalleryTabs();
       renderGalleryContent();
     });
   });
@@ -484,9 +460,8 @@ function renderGalleryContent() {
 
   elements.galleryGrid.innerHTML = prompts.map(prompt => {
     const date = new Date(prompt.createdAt).toLocaleDateString('he-IL');
-    const labels = [prompt.labels.task, prompt.labels.tone, prompt.labels.format]
-      .filter(Boolean)
-      .slice(0, 3);
+    // Get first 100 chars of prompt as preview
+    const preview = prompt.promptText.substring(0, 100).replace(/\n/g, ' ') + (prompt.promptText.length > 100 ? '...' : '');
 
     return `
       <div class="gallery-card" data-id="${prompt.id}">
@@ -494,9 +469,7 @@ function renderGalleryContent() {
           <span class="gallery-card-icon">🎯</span>
           <h3 class="gallery-card-title">${escapeHtml(prompt.title)}</h3>
         </div>
-        <div class="gallery-card-labels">
-          ${labels.map(l => `<span class="gallery-label">${escapeHtml(l)}</span>`).join('')}
-        </div>
+        <div class="gallery-card-preview">${escapeHtml(preview)}</div>
         <div class="gallery-card-date">${date}</div>
         <div class="gallery-card-actions">
           <button class="gallery-action-btn use-btn" data-id="${prompt.id}">השתמש</button>
