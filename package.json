@@ -1,0 +1,13 @@
+{
+  "name": "prompt-lab",
+  "version": "1.0.0",
+  "description": "Hebrew prompt engineering lab for municipal education employees",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

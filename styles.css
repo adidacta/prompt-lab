@@ -1,0 +1,616 @@
+/* Prompt Lab - Chat Interface Styles */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f5a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f4f6a;
+}
+
+/* Chat Messages */
+.message {
+  display: flex;
+  gap: 0.75rem;
+  animation: messageIn 0.3s ease;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.message.assistant .message-avatar {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.message.user .message-avatar {
+  background: #3f3f5a;
+}
+
+.message-content {
+  max-width: 80%;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  line-height: 1.5;
+}
+
+.message.assistant .message-content {
+  background: #25253d;
+  border-top-right-radius: 0.25rem;
+}
+
+.message.user .message-content {
+  background: #6366f1;
+  border-top-left-radius: 0.25rem;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Suggestion Chips in Chat */
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.suggestion-chip {
+  padding: 0.5rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #3f3f5a;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #e5e5e5;
+}
+
+.suggestion-chip:hover {
+  background: #2f2f4a;
+  border-color: #6366f1;
+}
+
+.suggestion-chip:active {
+  transform: scale(0.97);
+}
+
+.suggestions-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Canvas Sections */
+.canvas-section {
+  padding: 0.75rem;
+  background: #25253d;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.canvas-section.highlight {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.canvas-value {
+  font-size: 0.9375rem;
+  color: #e5e5e5;
+}
+
+.canvas-value.empty {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: #6366f1;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Toast */
+#toast.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Input focus */
+textarea:focus,
+input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Textarea placeholder */
+textarea::placeholder {
+  color: #6b7280;
+}
+
+/* RTL adjustments */
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+/* Selection */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Loading state for messages */
+.message-loading .message-content {
+  min-width: 60px;
+}
+
+/* Result display in chat */
+.result-content {
+  background: #1a1a2e;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 0.9375rem;
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.result-action-btn {
+  padding: 0.375rem 0.75rem;
+  background: #3f3f5a;
+  border: none;
+  border-radius: 0.5rem;
+  color: #e5e5e5;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.result-action-btn:hover {
+  background: #4f4f6a;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .flex.h-screen {
+    flex-direction: column-reverse;
+  }
+
+  .w-96 {
+    width: 100%;
+    height: 40vh;
+    border-right: none;
+    border-top: 1px solid #2f2f4a;
+  }
+
+  .flex-1.flex.flex-col {
+    height: 60vh;
+    border-left: none;
+  }
+
+  .message-content {
+    max-width: 85%;
+  }
+}
+
+/* Gradient text animation */
+.bg-gradient-to-l {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Button states */
+button:disabled {
+  cursor: not-allowed;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Phase indicator in canvas */
+.phase-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Prompt completeness indicator */
+.completeness-bar {
+  height: 4px;
+  background: #3f3f5a;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.completeness-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Progress Indicator Steps */
+#progress-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.progress-step .step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3f3f5a;
+  transition: all 0.3s ease;
+}
+
+.progress-step .step-label {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.progress-step.done .step-dot {
+  background: #6366f1;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+}
+
+.progress-step.done .step-label {
+  opacity: 1;
+}
+
+.progress-step.current .step-dot {
+  background: #8b5cf6;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.progress-step.current .step-label {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.progress-step.pending .step-dot {
+  background: #3f3f5a;
+}
+
+.progress-step.pending .step-label {
+  opacity: 0.4;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+  }
+}
+
+/* Progress connector lines */
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -0.5rem;
+  top: 5px;
+  width: 0.5rem;
+  height: 2px;
+  background: #3f3f5a;
+}
+
+.progress-step {
+  position: relative;
+}
+
+.progress-step.done:not(:last-child)::after {
+  background: #6366f1;
+}
+
+/* ============================================
+   GALLERY STYLES
+   ============================================ */
+
+/* Gallery Modal */
+.gallery-modal-content {
+  animation: modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Gallery Grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Gallery Card */
+.gallery-card {
+  background: #25253d;
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.gallery-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+}
+
+.gallery-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.gallery-card-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.gallery-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e5e5e5;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.gallery-card-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.gallery-label {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.gallery-card-date {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.gallery-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #3f3f5a;
+}
+
+.gallery-action-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gallery-action-btn.use-btn {
+  background: #6366f1;
+  color: white;
+}
+
+.gallery-action-btn.use-btn:hover {
+  background: #5558e3;
+}
+
+.gallery-action-btn.copy-btn {
+  background: #3f3f5a;
+  color: #e5e5e5;
+}
+
+.gallery-action-btn.copy-btn:hover {
+  background: #4f4f6a;
+}
+
+.gallery-action-btn.delete-btn {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.gallery-action-btn.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Filter Styles */
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.filter-chip {
+  padding: 0.375rem 0.75rem;
+  background: #1a1a2e;
+  border: 1px solid #3f3f5a;
+  border-radius: 1rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #e5e5e5;
+}
+
+.filter-chip:hover {
+  background: #2f2f4a;
+  border-color: #6366f1;
+}
+
+.filter-chip.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+/* Gallery Search */
+#gallery-search {
+  text-align: right;
+}
+
+#gallery-search::placeholder {
+  color: #6b7280;
+}
+
+/* Gallery Modal Mobile */
+@media (max-width: 768px) {
+  .gallery-modal-content {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+}

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מעבדת הפרומפטים</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#8b5cf6',
+            dark: {
+              900: '#0f0f1a',
+              800: '#1a1a2e',
+              700: '#25253d',
+              600: '#2f2f4a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+
+  <div class="flex h-screen">
+
+    <!-- Chat Panel (Left) -->
+    <div class="flex-1 flex flex-col border-l border-dark-600">
+
+      <!-- Header -->
+      <div class="p-4 border-b border-dark-600 bg-dark-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-bold flex items-center gap-2">
+              <span>🧪</span>
+              <span class="bg-gradient-to-l from-primary to-secondary bg-clip-text text-transparent">מעבדת הפרומפטים</span>
+            </h1>
+            <p class="text-sm text-gray-400 mt-1">בנה פרומפטים אפקטיביים בשיחה</p>
+          </div>
+          <button id="gallery-btn" class="bg-dark-700 hover:bg-dark-600 text-gray-200 px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2">
+            <span>📚</span>
+            <span>גלריה</span>
+          </button>
+        </div>
+        <!-- Progress Indicator -->
+        <div id="progress-container" class="flex items-center gap-2 mt-3 justify-end"></div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Messages will be inserted here -->
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-4 border-t border-dark-600 bg-dark-800">
+        <div class="flex gap-3">
+          <div class="flex-1 relative">
+            <textarea
+              id="user-input"
+              class="w-full bg-dark-700 rounded-xl p-3 pr-4 text-base resize-none border border-dark-600 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder="הקלד את תשובתך..."
+              rows="2"
+            ></textarea>
+          </div>
+          <button id="send-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-xl font-medium transition-all self-end h-[52px] disabled:opacity-50">
+            <svg class="w-5 h-5 rotate-[-90deg]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Canvas (Right) -->
+    <div class="w-96 bg-dark-800 flex flex-col border-r border-dark-600">
+
+      <!-- Canvas Header -->
+      <div class="p-4 border-b border-dark-600">
+        <h2 class="font-semibold flex items-center gap-2">
+          <span>📋</span>
+          <span>הפרומפט שלך</span>
+        </h2>
+      </div>
+
+      <!-- Canvas Content -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <div id="prompt-canvas" class="space-y-4">
+
+          <!-- Role Section -->
+          <div class="canvas-section" data-section="role">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🎭</span>
+              <span class="text-sm font-medium text-gray-400">תפקיד</span>
+            </div>
+            <div id="canvas-role" class="canvas-value empty">
+              טרם נבחר
+            </div>
+          </div>
+
+          <!-- Task Section -->
+          <div class="canvas-section" data-section="task">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🎯</span>
+              <span class="text-sm font-medium text-gray-400">משימה</span>
+            </div>
+            <div id="canvas-task" class="canvas-value empty">
+              טרם הוגדר
+            </div>
+          </div>
+
+          <!-- Format Section -->
+          <div class="canvas-section" data-section="format">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">📄</span>
+              <span class="text-sm font-medium text-gray-400">פורמט</span>
+            </div>
+            <div id="canvas-format" class="canvas-value empty">
+              טרם נבחר
+            </div>
+          </div>
+
+          <!-- Tone Section -->
+          <div class="canvas-section" data-section="tone">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🎨</span>
+              <span class="text-sm font-medium text-gray-400">טון וסגנון</span>
+            </div>
+            <div id="canvas-tone" class="canvas-value empty">
+              טרם נבחר
+            </div>
+          </div>
+
+          <!-- Constraints Section -->
+          <div class="canvas-section" data-section="constraints">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">📏</span>
+              <span class="text-sm font-medium text-gray-400">הגבלות</span>
+            </div>
+            <div id="canvas-constraints" class="canvas-value empty">
+              אין הגבלות
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Full Prompt Preview -->
+        <div class="mt-6 pt-4 border-t border-dark-600">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-400">תצוגה מקדימה</span>
+            <button id="toggle-preview" class="text-xs text-primary hover:underline">הצג/הסתר</button>
+          </div>
+          <div id="prompt-preview" class="hidden bg-dark-700 rounded-lg p-3 text-sm text-gray-300 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Actions -->
+      <div class="p-4 border-t border-dark-600 space-y-2">
+        <button id="run-prompt" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <span>▶️</span>
+          <span>הרץ פרומפט</span>
+        </button>
+        <button id="copy-prompt" class="w-full bg-dark-700 hover:bg-dark-600 text-gray-200 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <span>📋</span>
+          <span>העתק לקליפבורד</span>
+        </button>
+        <button id="publish-prompt" class="w-full bg-secondary/20 hover:bg-secondary/30 text-secondary py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          <span>📚</span>
+          <span>פרסם לגלריה</span>
+        </button>
+        <button id="reset-chat" class="w-full text-gray-400 hover:text-white py-2 text-sm transition-colors">
+          🔄 התחל מחדש
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Gallery Modal -->
+  <div id="gallery-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="gallery-modal-content bg-dark-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-dark-600 flex items-center justify-between">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <span>📚</span>
+          <span>גלריית הפרומפטים</span>
+        </h2>
+        <button id="gallery-close" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="p-4 border-b border-dark-600 space-y-3">
+        <div class="relative">
+          <input type="text" id="gallery-search" placeholder="חפש פרומפטים..."
+                 class="w-full bg-dark-700 rounded-xl p-3 pr-10 text-base border border-dark-600 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+        </div>
+        <div id="gallery-filters" class="flex flex-wrap gap-3">
+          <!-- Filters will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <div id="gallery-grid" class="gallery-grid">
+          <!-- Cards will be rendered here -->
+        </div>
+        <div id="gallery-empty" class="hidden text-center text-gray-400 py-12">
+          הגלריה ריקה. פרסם פרומפטים כדי לראות אותם כאן!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-dark-700 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
